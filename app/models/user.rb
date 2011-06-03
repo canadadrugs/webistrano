@@ -28,10 +28,27 @@ class User < ActiveRecord::Base
   
   # Authenticates a user by their login name and unencrypted password.  Returns the user or nil.
   def self.authenticate(login, password)
+    case WebistranoConfig[:authentication_method]
+    when :ldap
+      User.authenticate_ldap(login, password)
+    else 
+      User.authenticate_locally(login, password)
+    end
+  end
+  
+  def self.authenticate_ldap(login, password)
+    attributes = AuthenticationLDAP.authenticate(login, password)
+    
+    return nil unless attributes
+
+    find_by_login_and_disabled(login, nil) || create!(attributes.merge(:password_confirmation => password, :password => password, :disabled => Time.now))
+  end
+  
+  def self.authenticate_locally(login, password)
     u = find_by_login_and_disabled(login, nil) # need to get the salt
     u && u.authenticated?(password) ? u : nil
   end
-
+  
   # Encrypts some data with the salt.
   def self.encrypt(password, salt)
     Digest::SHA1.hexdigest("--#{salt}--#{password}--")
