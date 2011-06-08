@@ -1,6 +1,7 @@
 require 'digest/sha1'
 class User < ActiveRecord::Base
   has_many :deployments, :dependent => :nullify, :order => 'created_at DESC'
+  has_and_belongs_to_many :projects
   
   # Virtual attribute for the unencrypted password
   attr_accessor :password

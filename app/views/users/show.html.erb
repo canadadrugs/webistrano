@@ -8,39 +8,62 @@
 <div class="box">
   <div class="box_top"></div>
   <div class="box_middle">
-		<% if @user.admin? %>
-		  <p>
-		    <b>Admin User</b>
-		  </p>
-		<% end %>
-		<p>
-			  <b>Login:</b>
-			  <%=h @user.login %>
-			</p>
+    <% if @user.admin? %>
+      <p>
+        <b>Admin User</b>
+      </p>
+    <% end %>
+    <p>
+        <b>Login:</b>
+        <%=h @user.login %>
+      </p>
 
-			<p>
-			  <b>Email:</b>
-			  <%=h @user.email %>
-			</p>
+      <p>
+        <b>Email:</b>
+        <%=h @user.email %>
+      </p>
       
-			<p>
-			  <b>Timezone:</b> <%=h @user.time_zone.to_s %>
-			</p>
-			<p>
-			  <b>#Deployments:</b> <%=h @user.deployments.count %>
-			</p>
-			<br/>
-			<% if current_user.admin? || current_user == @user %>
-			  <%= link_to 'Edit & change password', edit_user_path(@user), :class => 'arrow_link' %> | 
-			  <% if @user.disabled? %>
-			    <%= link_to 'Enable', enable_user_path(@user), :confirm => 'Are you sure?', :method => :post, :class => 'arrow_link'  %>
-			  <% else %>
-			    <%= link_to 'Disable', user_path(@user), :confirm => 'Are you sure? Disabled users can no longer login.', :method => :delete, :class => 'arrow_link'  %>
-			  <% end %>
-			<% end %>
+      <p>
+        <b>Timezone:</b> <%=h @user.time_zone.to_s %>
+      </p>
+      <p>
+        <b>#Deployments:</b> <%=h @user.deployments.count %>
+      </p>
+      <br/>
+      <% if current_user.admin? || current_user == @user %>
+        <%= link_to 'Edit & change password', edit_user_path(@user), :class => 'arrow_link' %> | 
+        <% if @user.disabled? %>
+          <%= link_to 'Enable', enable_user_path(@user), :confirm => 'Are you sure?', :method => :post, :class => 'arrow_link'  %>
+        <% else %>
+          <%= link_to 'Disable', user_path(@user), :confirm => 'Are you sure? Disabled users can no longer login.', :method => :delete, :class => 'arrow_link'  %>
+        <% end %>
+      <% end %>
   </div>
   <div class="box_bottom"></div>
 </div>
+
+<div class="clear"></div>
+<br>
+
+<fieldset class="fieldset">
+  <legend>Project Permissions</legend>
+    <table class="sortable">
+      <tr>
+        <th>Project</th>
+        <th>Can Deploy?</th>
+      </tr>
+      <% Project.all.each do |project| %>
+        <% project.stages.each do |stage| %>
+          <tr class="<%= cycle :even, :odd, :name => 'stages' %>">
+            <td valign="top"><%= project.name %></td>
+            <td valign="top"><%= link_to h(stage.name), project_path(project) %></td>
+            <td valign="top">True</td>
+            <td><%= link_to 'Allow', '#' %></td>
+          </tr>
+        <% end %>
+      <% end %>
+    </table>
+</fieldset>
 
 <div class="clear"></div>
 <br>
