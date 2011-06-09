@@ -2,7 +2,8 @@ class ProjectsController < ApplicationController
   
   before_filter :load_templates, :only => [:new, :create, :edit, :update]
   before_filter :ensure_admin, :only => [:new, :edit, :destroy, :create, :update]
-  
+  before_filter :ensure_user, :only => [:show]
+
   # GET /projects/dashboard
   def dashboard
     @deployments = Deployment.find(:all, :limit => 3, :order => 'created_at DESC')
@@ -15,7 +16,7 @@ class ProjectsController < ApplicationController
   # GET /projects
   # GET /projects.xml
   def index
-    @projects = Project.find(:all, :order => 'name ASC')
+    @projects = current_user.projects
 
     respond_to do |format|
       format.html # index.rhtml
@@ -122,4 +123,16 @@ class ProjectsController < ApplicationController
       false
     end
   end
+  
+  private
+    def ensure_user
+      @project = Project.find(params[:id])
+      if current_user.projects.include?(@project)
+        return true
+      else
+        flash[:notice] = "Action not allowed"
+        redirect_to home_path
+        return false
+      end
+    end
 end

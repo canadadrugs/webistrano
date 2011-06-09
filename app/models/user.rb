@@ -1,7 +1,6 @@
 require 'digest/sha1'
 class User < ActiveRecord::Base
   has_many :deployments, :dependent => :nullify, :order => 'created_at DESC'
-  has_and_belongs_to_many :projects
 
   # Project stages that a user is allowed to see and deploy
   has_many :user_stages, :dependent => :destroy
@@ -10,7 +9,7 @@ class User < ActiveRecord::Base
   # Virtual attribute for the unencrypted password
   attr_accessor :password
   
-  attr_accessible :login, :email, :password, :password_confirmation, :time_zone, :tz
+  attr_accessible :login, :email, :password, :password_confirmation, :time_zone, :tz, :stage_ids
 
   validates_presence_of     :login, :email
   validates_presence_of     :password,                   :if => :password_required?
@@ -57,6 +56,26 @@ class User < ActiveRecord::Base
   # Encrypts some data with the salt.
   def self.encrypt(password, salt)
     Digest::SHA1.hexdigest("--#{salt}--#{password}--")
+  end
+
+  # All projects that a user has stages for. Admin users see all projects
+  def projects
+    if admin?
+      @projects ||= Project.find(:all, :include => :stages, :order => 'name ASC')
+    else
+      @projects ||= self.stages.map(&:project).uniq.sort_by{ |p| p.name }
+    end
+    @projects
+  end
+
+  def stages_for_project(project)
+    @stages_for_projects ||= {}
+    if admin?
+      @stages_for_projects[project] ||= project.stages
+    else
+      @stages_for_projects[project] ||= self.stages.select{ |stage| stage.project == project}
+    end
+    @stages_for_projects[project]
   end
 
   # Encrypts the password with the user salt

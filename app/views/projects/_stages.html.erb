@@ -9,7 +9,7 @@
       <th width="33%">#Hosts</th>
       <th width="33%">#Deployments</th>
     </tr>
-  <% for stage in @project.stages %>
+  <% for stage in current_user.stages_for_project(@project) %>
     <tr class="<%= cycle :even, :odd, :name => 'stages' %>">
       <td><%= link_to h(stage.name), project_stage_path(@project, stage) %></td>
       <td><%=h stage.hosts.count  %></td>

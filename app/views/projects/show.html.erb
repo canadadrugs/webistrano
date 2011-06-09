@@ -1,9 +1,9 @@
 <div class="special_box">
   <div class="special_box_top"></div>
   <div class="special_box_middle stages_box">
-    <% if @project.stages.count > 0 %>
+    <% if current_user.stages_for_project(@project).size > 0 %>
       <p><strong>Choose a stage:</strong></p>
-      <% for stage in @project.stages %>
+      <% for stage in current_user.stages_for_project(@project) %>
           <p><%= link_to h(stage.name), project_stage_path(@project, stage), :class => 'arrow_link'  %></p>
       <% end %>
     <% else %>  
@@ -52,7 +52,9 @@
   <legend>Stages</legend>
   <%= render(:partial => 'stages')%>
   <br />
-  <%= link_to 'New stage', new_project_stage_path(@project), :class => 'arrow_link' %>
+  <% if current_user.admin? %>
+    <%= link_to 'New stage', new_project_stage_path(@project), :class => 'arrow_link' %>
+  <% end %>
 </fieldset>
 
 <br /><br />

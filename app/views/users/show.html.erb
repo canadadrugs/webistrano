@@ -52,13 +52,43 @@
         <th>Project</th>
         <th>Can Deploy?</th>
       </tr>
-      <% Project.all.each do |project| %>
-        <% project.stages.each do |stage| %>
+      <% (current_user.admin? ? current_user : @user).projects.each do |project| %>
+        <% (current_user.admin? ? current_user : @user).stages_for_project(project).each do |stage| %>
           <tr class="<%= cycle :even, :odd, :name => 'stages' %>">
             <td valign="top"><%= project.name %></td>
             <td valign="top"><%= link_to h(stage.name), project_path(project) %></td>
-            <td valign="top">True</td>
-            <td><%= link_to 'Allow', '#' %></td>
+            <% if @user.admin? %>
+              <td valign="top">True</td>
+              <td>&nbsp;</td>
+            <% else %>
+              <% if @user.stages.include?(stage) %>
+                <td valign="top">True</td>
+                <td>
+                  <% if @user.admin? || current_user.admin? %>
+                    <% form_tag update_stages_user_path(@user) do %>
+                      <%= hidden_field_tag 'stage_id', stage.id %>
+                      <%= hidden_field_tag 'remove_from_stage', stage.id %>
+                      <%= submit_tag 'Disallow' %>
+                    <% end %>
+                  <% else %>
+                    &nbsp;
+                  <% end %>
+                </td>
+              <% else %>
+                <td valign="top">False</td>
+                <td>
+                  <% if @user.admin? || current_user.admin?  %>
+                    <% form_tag update_stages_user_path(@user) do %>
+                      <%= hidden_field_tag 'stage_id', stage.id %>
+                      <%= hidden_field_tag 'add_to_stage', stage.id %>
+                      <%= submit_tag 'Allow' %>
+                    <% end %>
+                  <% else %>
+                    &nbsp;
+                  <% end %>
+                </td>
+              <% end %>
+            <% end %>
           </tr>
         <% end %>
       <% end %>

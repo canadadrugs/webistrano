@@ -32,3 +32,12 @@
     <%= check_box 'user', 'admin', :class => 'noframe' %>
   </p>
 <% end -%>
+
+<% if current_user.admin?  && !@user.admin? %>
+  <p>
+    <b>Stages for User</b><br/>
+    <% Stage.all(:include => :project).sort_by{ |s| [s.project.name, s.name] }.each do |stage|%>
+      <%= check_box_tag('user[stage_ids][]', stage.id, @user.stages.include?(stage)) %> <%= "#{stage.project.name} (#{stage.name})" %><br/>
+    <% end %>
+  </p>
+<% end %>

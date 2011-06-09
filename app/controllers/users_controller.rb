@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  before_filter :ensure_admin, :only => [:new, :destroy, :create, :enable]
+  before_filter :ensure_admin, :only => [:new, :destroy, :create, :enable, :update_stages]
   before_filter :ensure_admin_or_my_entry, :only => [:edit, :update]
 
   # GET /users
@@ -116,6 +116,20 @@ class UsersController < ApplicationController
     end
   end
   
+  def update_stages
+    @user = User.find(params[:id])
+    @stage = Stage.find(params[:stage_id])
+
+    if params[:add_to_stage]
+      @user.stages += [@stage]
+      @user.save
+    elsif params[:remove_from_stage]
+      @user.stages -= [@stage] if @user.stages.present?
+      @user.save
+    end
+    redirect_to user_path(@user)
+  end
+
   protected
   def ensure_admin_or_my_entry
     if current_user.admin? || current_user.id == User.find(params[:id]).id
