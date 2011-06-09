@@ -2,7 +2,11 @@ require 'digest/sha1'
 class User < ActiveRecord::Base
   has_many :deployments, :dependent => :nullify, :order => 'created_at DESC'
   has_and_belongs_to_many :projects
-  
+
+  # Project stages that a user is allowed to see and deploy
+  has_many :user_stages, :dependent => :destroy
+  has_many :stages, :through => :user_stages
+
   # Virtual attribute for the unencrypted password
   attr_accessor :password
   

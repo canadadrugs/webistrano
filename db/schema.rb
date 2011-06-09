@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110608165215) do
+ActiveRecord::Schema.define(:version => 20110609131536) do
 
   create_table "configuration_parameters", :force => true do |t|
     t.string   "name"
@@ -24,7 +24,7 @@ ActiveRecord::Schema.define(:version => 20110608165215) do
 
   create_table "deployments", :force => true do |t|
     t.string   "task"
-    t.text     "log",               :limit => 2147483647
+    t.text     "log"
     t.integer  "stage_id"
     t.datetime "created_at"
     t.datetime "updated_at"
@@ -34,7 +34,7 @@ ActiveRecord::Schema.define(:version => 20110608165215) do
     t.string   "excluded_host_ids"
     t.string   "revision"
     t.integer  "pid"
-    t.string   "status",                                  :default => "running"
+    t.string   "status",            :default => "running"
   end
 
   add_index "deployments", ["stage_id"], :name => "index_deployments_on_stage_id"
@@ -68,11 +68,6 @@ ActiveRecord::Schema.define(:version => 20110608165215) do
   end
 
   add_index "projects_users", ["user_id", "project_id"], :name => "index_user_project_ids"
-
-  create_table "projects_users_bak", :id => false, :force => true do |t|
-    t.integer "project_id"
-    t.integer "user_id"
-  end
 
   create_table "recipe_versions", :force => true do |t|
     t.integer  "recipe_id"
@@ -127,6 +122,13 @@ ActiveRecord::Schema.define(:version => 20110608165215) do
   end
 
   add_index "stages", ["project_id"], :name => "index_stages_on_project_id"
+
+  create_table "user_stages", :force => true do |t|
+    t.integer "user_id"
+    t.integer "stage_id"
+  end
+
+  add_index "user_stages", ["user_id", "stage_id"], :name => "index_user_stages_on_user_id_and_stage_id"
 
   create_table "users", :force => true do |t|
     t.string   "login"

@@ -6,7 +6,11 @@ class Stage < ActiveRecord::Base
   has_many :configuration_parameters, :dependent => :destroy, :class_name => "StageConfiguration", :order => "name ASC"
   has_many :deployments, :dependent => :destroy, :order => "created_at DESC"
   belongs_to :locking_deployment, :class_name => 'Deployment', :foreign_key => :locked_by_deployment_id 
-  
+
+  # Users allowed to see and deploy this stage
+  has_many :user_stages, :dependent => :destroy
+  has_many :users, :through => :user_stages
+
   validates_uniqueness_of :name, :scope => :project_id
   validates_length_of :name, :maximum => 250
   validates_presence_of :project, :name
