@@ -2,6 +2,7 @@ class DeploymentsController < ApplicationController
   
   before_filter :load_stage
   before_filter :ensure_deployment_possible, :only => [:new, :create]
+  before_filter :ensure_proper_user, :only => [:new, :create]
 
   # GET /projects/1/stages/1/deployments
   # GET /projects/1/stages/1/deployments.xml
@@ -101,6 +102,18 @@ class DeploymentsController < ApplicationController
   end
   
   protected
+  def ensure_proper_user
+    if current_user.can_deploy_stage?(@stage)
+      true
+    else
+      respond_to do |format|  
+        flash[:notice] = 'Action not allowed.'
+        format.html { redirect_to home_path }
+        false
+      end
+    end
+  end
+
   def ensure_deployment_possible
     if current_stage.deployment_possible?
         true

@@ -82,7 +82,7 @@ class Stage < ActiveRecord::Base
     # when there are not deployment_problems, deployment is possible
     @deployment_problems.blank?
   end
-  
+
   def needed_roles_present?
     # for now just check if there are any roles
     if self.roles.empty? 

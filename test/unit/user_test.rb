@@ -185,7 +185,81 @@ class UserTest < ActiveSupport::TestCase
     assert_equal [user], User.disabled
   end
 
+  def test_projects_for_admin_users
+    user = create_new_user
+    user.admin = 1
+
+    project_1 = create_new_project
+    project_2 = create_new_project
+
+    stage_1 = create_new_stage
+    stage_2 = create_new_stage
+
+    user.stages = [stage_1, stage_2]
+    user.save
+
+    # 4 projects created. 2 for the created stages and 2 manually created ones.
+    # Since user is admin, it should give all projects
+    assert_equal(user.projects.size, 4)
+  end
+
+  def test_projects_for_non_admin_users
+    user = create_new_user
+    user.admin = 0
+
+    project_1 = create_new_project
+    project_2 = create_new_project
+
+    stage_1 = create_new_stage
+    stage_2 = create_new_stage
+
+    user.stages = [stage_1, stage_2]
+    user.save
+
+    # 4 projects created. 2 for the created stages and 2 manually created ones.
+    # Since user is not admin, it should give only give projects that users have stages for
+    assert_equal(user.projects.size, 2)
+    assert_equal(user.projects, [stage_1.project, stage_2.project])
+  end
+
+  def test_user_can_view_project_if_admin_user
+    user = create_admin_user
+    project = create_new_project
+
+    assert_equal(user.can_view_project?(project), true)
+  end
+
+  def test_user_can_view_project_if_user_has_a_stage_in_project
+    user = create_user
+    project = create_new_project
+    user.stages << create_new_stage(:project => project)
+
+    assert_equal(user.can_view_project?(project), true)
+  end
+
+  def test_user_can_view_stage_if_admin_user
+    user = create_admin_user
+    stage = create_new_stage
+    
+    assert_equal(user.can_view_stage?(stage), true)
+  end
+
+  def test_user_can_view_stage_if_user_has_stage
+    user = create_user
+    stage = create_new_stage
+    user.stages << stage
+    
+    assert_equal(user.can_view_stage?(stage), true)
+  end
+
+
   protected
+    def create_admin_user(options = {})
+      user = create_user
+      user.make_admin!
+      user
+    end
+
     def create_user(options = {})
       User.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire' }.merge(options))
     end

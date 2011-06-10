@@ -9,6 +9,13 @@ class DeploymentsControllerTest < ActionController::TestCase
     @deployment = create_new_deployment(:task => 'deploy:setup', :stage => @stage)
     
     @user = login
+    @user.stages << @stage
+    @user.save
+  end
+
+  def unassign_user_from_stage(user, stage)
+    @user.stages = []
+    @user.save
   end
 
   def test_should_get_new_if_deployment_possible
@@ -16,7 +23,21 @@ class DeploymentsControllerTest < ActionController::TestCase
     get :new, :project_id => @project.id, :stage_id => @stage.id
     assert_response :success
   end
-  
+
+  def test_should_get_not_new_if_deployment_possible_and_user_does_not_have_stage
+    unassign_user_from_stage @user, @stage
+    assert @stage.deployment_possible?
+    get :new, :project_id => @project.id, :stage_id => @stage.id
+    assert_redirected_to home_path
+    assert_not_nil flash[:notice]
+  end
+
+  def test_should_get_new_if_deployment_possible_and_is_admin_user
+    @user = admin_login
+    assert @stage.deployment_possible?
+    get :new, :project_id => @project.id, :stage_id => @stage.id
+    assert_response :success
+  end
   def test_should_not_get_new_if_deployment_not_possible
     @stage.roles.clear
     assert !@stage.deployment_possible?

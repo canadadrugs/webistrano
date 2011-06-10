@@ -147,6 +147,18 @@ class User < ActiveRecord::Base
     self.update_attribute(:disabled, nil)
   end
 
+  def can_deploy_stage?(stage)
+    can_view_stage?(stage)
+  end
+
+  def can_view_stage?(stage)
+    admin? ? true : stages.include?(stage)
+  end
+
+  def can_view_project?(project)
+    admin? ? true : projects.include?(project)
+  end
+
   protected
     # before filter 
     def encrypt_password

@@ -52,9 +52,18 @@ class ProjectsControllerTest < ActionController::TestCase
     assert_not_nil Project.find(:first).configuration_parameters.find_by_name('scm_username')
   end
 
-  def test_should_show_project
-    @user = login
+  def test_should_show_project_if_admin
+    @user = admin_login
         
+    get :show, :id => @project.id
+    assert_response :success
+  end
+  
+  def test_should_show_project_if_user_has_project
+    @user = login
+    @user.stages << create_new_stage(:project => @project)
+    @user.save
+
     get :show, :id => @project.id
     assert_response :success
   end

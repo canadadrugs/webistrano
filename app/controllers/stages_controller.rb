@@ -2,7 +2,7 @@ class StagesController < ApplicationController
 
   before_filter :load_project
   before_filter :ensure_admin, :only => [:edit, :update, :new, :create, :destroy]
-  before_filter :ensure_user, :only => [:show]
+  before_filter :ensure_proper_user, :only => [:show]
   
   # GET /projects/1/stages.xml
   def index
@@ -121,8 +121,8 @@ class StagesController < ApplicationController
   end
   
   private
-    def ensure_user
-      if current_user.stages.map(&:id).include?(params[:id])
+    def ensure_proper_user
+      if current_user.can_view_stage?(current_project.stages.find(params[:id]))
         return true
       else
         flash[:notice] = "Action not allowed"

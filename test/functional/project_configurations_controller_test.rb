@@ -31,11 +31,19 @@ class ProjectConfigurationsControllerTest < ActionController::TestCase
     assert_redirected_to project_path(@project)
   end
   
-  def test_should_destroy_project_configuration
+  def test_should_destroy_project_configuration_if_admin
+    @user = admin_login
     old_count = ProjectConfiguration.count
     delete :destroy, :project_id => @project.id, :id => @config.id
     assert_equal old_count-1, ProjectConfiguration.count
     
     assert_redirected_to project_path(@project)
+  end
+  
+  def test_should_redirect_on_destroy_project_configuration_if_not_admin
+    @user = login
+    delete :destroy, :project_id => @project.id, :id => @config.id
+    assert_not_nil flash[:notice]
+    assert_redirected_to home_path
   end
 end

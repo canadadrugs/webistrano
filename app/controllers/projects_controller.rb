@@ -2,7 +2,7 @@ class ProjectsController < ApplicationController
   
   before_filter :load_templates, :only => [:new, :create, :edit, :update]
   before_filter :ensure_admin, :only => [:new, :edit, :destroy, :create, :update]
-  before_filter :ensure_user, :only => [:show]
+  before_filter :ensure_proper_user, :only => [:show]
 
   # GET /projects/dashboard
   def dashboard
@@ -125,9 +125,9 @@ class ProjectsController < ApplicationController
   end
   
   private
-    def ensure_user
+    def ensure_proper_user
       @project = Project.find(params[:id])
-      if current_user.projects.include?(@project)
+      if current_user.can_view_project?(@project)
         return true
       else
         flash[:notice] = "Action not allowed"
