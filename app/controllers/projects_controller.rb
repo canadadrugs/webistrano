@@ -2,7 +2,7 @@ class ProjectsController < ApplicationController
   
   before_filter :load_templates, :only => [:new, :create, :edit, :update]
   before_filter :ensure_admin, :only => [:new, :edit, :destroy, :create, :update]
-  before_filter :ensure_proper_user, :only => [:show]
+  before_filter :ensure_user_authorized_for_project, :only => [:show]
 
   # GET /projects/dashboard
   def dashboard
@@ -123,16 +123,4 @@ class ProjectsController < ApplicationController
       false
     end
   end
-  
-  private
-    def ensure_proper_user
-      @project = Project.find(params[:id])
-      if current_user.can_view_project?(@project)
-        return true
-      else
-        flash[:notice] = "Action not allowed"
-        redirect_to home_path
-        return false
-      end
-    end
 end

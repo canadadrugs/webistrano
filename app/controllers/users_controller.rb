@@ -115,20 +115,6 @@ class UsersController < ApplicationController
       format.xml  { render :xml => @user.deployments.to_xml }
     end
   end
-  
-  def update_stages
-    @user = User.find(params[:id])
-    @stage = Stage.find(params[:stage_id])
-
-    if params[:add_to_stage]
-      @user.stages += [@stage]
-      @user.save
-    elsif params[:remove_from_stage]
-      @user.stages -= [@stage] if @user.stages.present?
-      @user.save
-    end
-    redirect_to user_path(@user)
-  end
 
   protected
   def ensure_admin_or_my_entry

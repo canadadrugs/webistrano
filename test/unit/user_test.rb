@@ -222,34 +222,43 @@ class UserTest < ActiveSupport::TestCase
     assert_equal(user.projects, [stage_1.project, stage_2.project])
   end
 
-  def test_user_can_view_project_if_admin_user
-    user = create_admin_user
-    project = create_new_project
-
-    assert_equal(user.can_view_project?(project), true)
-  end
-
-  def test_user_can_view_project_if_user_has_a_stage_in_project
-    user = create_user
-    project = create_new_project
-    user.stages << create_new_stage(:project => project)
-
-    assert_equal(user.can_view_project?(project), true)
-  end
-
-  def test_user_can_view_stage_if_admin_user
+  def test_admin_users_authorized_for_stage?
     user = create_admin_user
     stage = create_new_stage
-    
-    assert_equal(user.can_view_stage?(stage), true)
+    assert_equal(user.authorized_for_stage?(stage.id), true)
   end
 
-  def test_user_can_view_stage_if_user_has_stage
+  def test_regular_users_authorized_for_stage?
     user = create_user
     stage = create_new_stage
+    user.stages << stage    
+    assert_equal(user.authorized_for_stage?(stage.id), true)
+  end
+
+  def test_regular_users_not_authorized_for_stage?
+    user = create_user
+    stage = create_new_stage  
+    assert_equal(user.authorized_for_stage?(stage.id), false)
+  end
+
+  def test_admin_users_authorized_for_project?
+    user = create_admin_user
+    project = create_new_project
+    assert_equal(user.authorized_for_project?(project.id), true)
+  end
+
+  def test_regular_users_authorized_for_project?
+    user = create_user
+    project = create_new_project
+    stage = create_new_stage(:project => project)
     user.stages << stage
-    
-    assert_equal(user.can_view_stage?(stage), true)
+    assert_equal(user.authorized_for_project?(project.id), true)
+  end
+
+  def test_regular_users_not_authorized_for_project?
+    user = create_user
+    project = create_new_project
+    assert_equal(user.authorized_for_project?(project.id), false)
   end
 
 

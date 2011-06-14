@@ -2,8 +2,8 @@ class StagesController < ApplicationController
 
   before_filter :load_project
   before_filter :ensure_admin, :only => [:edit, :update, :new, :create, :destroy]
-  before_filter :ensure_proper_user, :only => [:show]
-  
+  before_filter :ensure_user_authorized_for_stage, :only => [:show]
+
   # GET /projects/1/stages.xml
   def index
     @stages = current_project.stages
@@ -119,16 +119,4 @@ class StagesController < ApplicationController
       end
     end
   end
-  
-  private
-    def ensure_proper_user
-      if current_user.can_view_stage?(current_project.stages.find(params[:id]))
-        return true
-      else
-        flash[:notice] = "Action not allowed"
-        redirect_to home_path
-        return false
-      end
-    end
-  
 end

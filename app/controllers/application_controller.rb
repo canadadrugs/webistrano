@@ -51,7 +51,34 @@ class ApplicationController < ActionController::Base
       return false
     end
   end
-  
+
+  def ensure_user_authorized_for_stage
+    if @stage
+      stage_id = @stage.id
+    else
+      stage_id = params[:id]
+    end
+
+    if current_user.authorized_for_stage?(stage_id)
+      return true
+    else
+      flash[:notice] = "Action not allowed"
+      redirect_to home_path
+      return false
+    end
+  end
+
+  def ensure_user_authorized_for_project
+    project_id = params[:id]
+    if current_user.authorized_for_project?(project_id)
+      return true
+    else
+      flash[:notice] = "Action not allowed"
+      redirect_to home_path
+      return false
+    end
+  end
+
   def ensure_not_disabled
     if logged_in? && current_user.disabled?
       logout

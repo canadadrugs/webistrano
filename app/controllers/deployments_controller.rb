@@ -2,7 +2,7 @@ class DeploymentsController < ApplicationController
   
   before_filter :load_stage
   before_filter :ensure_deployment_possible, :only => [:new, :create]
-  before_filter :ensure_proper_user, :only => [:new, :create]
+  before_filter :ensure_user_authorized_for_stage, :only => [:new, :create]
 
   # GET /projects/1/stages/1/deployments
   # GET /projects/1/stages/1/deployments.xml

@@ -51,9 +51,11 @@
       <tr>
         <th>Project</th>
         <th>Can Deploy?</th>
+        <th>&nbsp;</th>
       </tr>
       <% (current_user.admin? ? current_user : @user).projects.each do |project| %>
-        <% (current_user.admin? ? current_user : @user).stages_for_project(project).each do |stage| %>
+        <% stages = (current_user.admin? ? current_user : @user).stages_for_project(project) %>
+        <% stages.each do |stage| %>
           <tr class="<%= cycle :even, :odd, :name => 'stages' %>">
             <td valign="top"><%= link_to h(project.name), project_path(project) %></td>
             <td valign="top"><%= link_to h(stage.name), project_stage_url(project, stage) %></td>
@@ -63,30 +65,8 @@
             <% else %>
               <% if @user.stages.include?(stage) %>
                 <td valign="top">True</td>
-                <td>
-                  <% if @user.admin? || current_user.admin? %>
-                    <% form_tag update_stages_user_path(@user) do %>
-                      <%= hidden_field_tag 'stage_id', stage.id %>
-                      <%= hidden_field_tag 'remove_from_stage', stage.id %>
-                      <%= submit_tag 'Disallow' %>
-                    <% end %>
-                  <% else %>
-                    &nbsp;
-                  <% end %>
-                </td>
               <% else %>
                 <td valign="top">False</td>
-                <td>
-                  <% if @user.admin? || current_user.admin?  %>
-                    <% form_tag update_stages_user_path(@user) do %>
-                      <%= hidden_field_tag 'stage_id', stage.id %>
-                      <%= hidden_field_tag 'add_to_stage', stage.id %>
-                      <%= submit_tag 'Allow' %>
-                    <% end %>
-                  <% else %>
-                    &nbsp;
-                  <% end %>
-                </td>
               <% end %>
             <% end %>
           </tr>

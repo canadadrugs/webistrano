@@ -22,6 +22,10 @@ class Stage < ActiveRecord::Base
   # (think model.errors lite)
   attr_accessor :deployment_problems
   
+  named_scope :for_project, lambda{ |project|
+    {:conditions => {:project_id => project.id}}
+  }
+  
   EMAIL_BASE_REGEX = '([^@\s\,\<\>\?\&\;\:]+)@((?:[\-a-z0-9]+\.)+[a-z]{2,})'
   EMAIL_REGEX = /^#{EMAIL_BASE_REGEX}$/i
     

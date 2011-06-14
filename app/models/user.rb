@@ -6,6 +6,14 @@ class User < ActiveRecord::Base
   has_many :user_stages, :dependent => :destroy
   has_many :stages, :through => :user_stages
 
+  # All projects which a user is authorised to.
+  has_many :authorized_projects, :class_name => "Project", :finder_sql => %q(
+                                                                              SELECT DISTINCT pj.* FROM projects pj
+                                                                              JOIN stages st ON st.project_id=pj.id
+                                                                              JOIN user_stages us ON us.stage_id=st.id
+                                                                              WHERE us.user_id=#{id}
+                                                                            )
+
   # Virtual attribute for the unencrypted password
   attr_accessor :password
   
@@ -61,21 +69,18 @@ class User < ActiveRecord::Base
   # All projects that a user has stages for. Admin users see all projects
   def projects
     if admin?
-      @projects ||= Project.find(:all, :include => :stages, :order => 'name ASC')
+      Project.find(:all, :include => :stages, :order => 'name ASC')
     else
-      @projects ||= self.stages.map(&:project).uniq.sort_by{ |p| p.name }
+      authorized_projects
     end
-    @projects
   end
 
   def stages_for_project(project)
-    @stages_for_projects ||= {}
     if admin?
-      @stages_for_projects[project] ||= project.stages
+      project.stages
     else
-      @stages_for_projects[project] ||= self.stages.select{ |stage| stage.project == project}
+      stages.for_project(project)
     end
-    @stages_for_projects[project]
   end
 
   # Encrypts the password with the user salt
@@ -147,16 +152,35 @@ class User < ActiveRecord::Base
     self.update_attribute(:disabled, nil)
   end
 
-  def can_deploy_stage?(stage)
-    can_view_stage?(stage)
+  def authorized_for_project?(project_id)
+    if admin?
+      true
+    else
+      # Since has_many with finder_sql doesnt support find_in_collection, we cannot use
+      # authorized_projects.find(project_id) , so we have to use a custom sequel
+      begin
+        project = Project.find(
+          :first,
+          :joins => "JOIN stages ON stages.project_id=projects.id JOIN user_stages ON user_stages.stage_id=stages.id",
+          :conditions => ["user_stages.user_id=? AND projects.id=?", self.id, project_id]
+        )
+        project.present?
+      rescue
+        false
+      end
+    end
   end
 
-  def can_view_stage?(stage)
-    admin? ? true : stages.include?(stage)
-  end
-
-  def can_view_project?(project)
-    admin? ? true : projects.include?(project)
+  def authorized_for_stage?(stage_id)
+    if admin?
+      true
+    else
+      begin
+        stages.find(stage_id).present?
+      rescue
+        false
+      end
+    end
   end
 
   protected

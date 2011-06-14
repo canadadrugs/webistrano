@@ -1,9 +1,10 @@
 <div class="special_box">
   <div class="special_box_top"></div>
   <div class="special_box_middle stages_box">
-    <% if current_user.stages_for_project(@project).size > 0 %>
+    <% stages = current_user.stages_for_project(@project)%>
+    <% if stages.size > 0 %>
       <p><strong>Choose a stage:</strong></p>
-      <% for stage in current_user.stages_for_project(@project) %>
+      <% for stage in stages %>
           <p><%= link_to h(stage.name), project_stage_path(@project, stage), :class => 'arrow_link'  %></p>
       <% end %>
     <% else %>  
