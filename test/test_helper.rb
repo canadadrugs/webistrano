@@ -34,6 +34,16 @@ class ActiveSupport::TestCase
     admin.make_admin!
     return admin
   end
-    
-  
+
+  def remove_authentication_method
+    @authentication_method = WebistranoConfig.delete(:authentication_method) if WebistranoConfig.has_key?(:authentication_method)
+  end
+
+  def add_authentication_method
+    if @authentication_method
+      WebistranoConfig[:authentication_method] = @authentication_method
+    else
+      WebistranoConfig.delete(:authentication_method)
+    end
+  end
 end

@@ -9,7 +9,7 @@
   <%= text_field 'user', 'email', :style =>'width:330px;' %>
 </p>
 
-<% unless WebistranoConfig[:authentication_method] == :cas -%>
+<% if can_change_password? -%>
 <p>
   <b>Password</b><br />
   <%= password_field 'user', 'password', :style =>'width:330px;' %>

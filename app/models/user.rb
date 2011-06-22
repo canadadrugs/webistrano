@@ -17,21 +17,31 @@ class User < ActiveRecord::Base
   # Virtual attribute for the unencrypted password
   attr_accessor :password
   
-  attr_accessible :login, :email, :password, :password_confirmation, :time_zone, :tz, :stage_ids
+  attr_accessible :login, :email, :password, :password_confirmation, :time_zone, :tz, :stage_ids, :guid
 
   validates_presence_of     :login, :email
+  validates_presence_of     :guid, :if => :use_ldap_authentication?
   validates_presence_of     :password,                   :if => :password_required?
   validates_presence_of     :password_confirmation,      :if => :password_required?
   validates_length_of       :password, :within => 4..40, :if => :password_required?
   validates_confirmation_of :password,                   :if => :password_required?
   validates_length_of       :login,    :within => 3..40
   validates_length_of       :email,    :within => 3..100
-  validates_uniqueness_of   :login, :email, :case_sensitive => false
+  validates_uniqueness_of   :email, :case_sensitive => false
+  validates_uniqueness_of   :login, :case_sensitive => false, :scope => :guid
+  validate                  :only_one_enabled_unique_login
   before_save :encrypt_password
   
   named_scope :enabled, :conditions => {:disabled => nil}
   named_scope :disabled, :conditions => "disabled IS NOT NULL"
-    
+
+  def only_one_enabled_unique_login
+    # Verify that this user is the only enabled user with the login
+    if !disabled? && User.find_all_by_login_and_disabled(login, nil).reject{|user| user.id == self.id}.size > 0
+      errors.add(:login, 'name can only be active for one user at a time.')
+    end
+  end
+
   def validate_on_update
     if User.find(self.id).admin? && !self.admin?
       errors.add('admin', 'status can no be revoked as there needs to be one admin left.') if User.admin_count == 1
@@ -50,10 +60,10 @@ class User < ActiveRecord::Base
   
   def self.authenticate_ldap(login, password)
     attributes = AuthenticationLDAP.authenticate(login, password)
-    
+
     return nil unless attributes
 
-    find_by_login_and_disabled(login, nil) || create!(attributes.merge(:password_confirmation => password, :password => password, :disabled => Time.now))
+    find_by_login_and_disabled_and_guid(login, nil, attributes[:guid]) || create!(attributes.merge(:password_confirmation => password, :password => password))
   end
   
   def self.authenticate_locally(login, password)
@@ -149,7 +159,8 @@ class User < ActiveRecord::Base
   end
   
   def enable
-    self.update_attribute(:disabled, nil)
+    self.disabled = nil
+    self.save
   end
 
   def authorized_for_project?(project_id)
@@ -184,16 +195,18 @@ class User < ActiveRecord::Base
   end
 
   protected
-    # before filter 
+    # before filter
     def encrypt_password
       return if password.blank?
       self.salt = Digest::SHA1.hexdigest("--#{Time.now.to_s}--#{login}--") if new_record?
       self.crypted_password = encrypt(password)
     end
-    
+
     def password_required?
       WebistranoConfig[:authentication_method] != :cas && (crypted_password.blank? || !password.blank?)
     end
 
-    
+    def use_ldap_authentication?
+      WebistranoConfig[:authentication_method] == :ldap
+    end
 end

@@ -5,7 +5,11 @@ class UsersController < ApplicationController
   # GET /users
   # GET /users.xml
   def index
-    @users = User.find(:all, :order => 'login ASC')
+    if current_user.admin?
+      @users = User.all(:order => 'login ASC')
+    else
+      @users = User.enabled.all(:order => 'login ASC')
+    end
   end
 
   # GET /users/new
@@ -95,8 +99,11 @@ class UsersController < ApplicationController
   
   def enable
     @user = User.find(params[:id])
-    @user.enable
-    flash[:notice] = "The user was enabled"
+    if @user.enable
+      flash[:notice] = "The user was enabled"
+    else
+      flash[:error] = "The user can not be enabled"
+    end
     
     respond_to do |format|
       format.html { redirect_to users_path }

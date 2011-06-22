@@ -1,6 +1,13 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class UsersControllerTest < ActionController::TestCase
+  def setup
+    remove_authentication_method
+  end
+
+  def teardown
+    add_authentication_method
+  end
 
   def test_should_not_allow_for_non_admins_to_create_users
     login

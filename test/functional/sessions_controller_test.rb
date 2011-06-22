@@ -9,6 +9,11 @@ class SessionsControllerTest < ActionController::TestCase
     @controller = SessionsController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+    remove_authentication_method
+  end
+
+  def teardown
+    add_authentication_method
   end
 
   def test_should_login_and_redirect

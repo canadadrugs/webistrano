@@ -1,5 +1,5 @@
 <fieldset class="fieldset">
-  <legend> <%=h pluralize(User.count, 'User')%> listed</legend>
+  <legend><%=h pluralize(@users.size, 'User')%> listed</legend>
 
 <% if @users.empty? %>
   <br/>
@@ -36,7 +36,7 @@
   </table>
 <% end %>
 
-<% if current_user.admin? %>
+<% if current_user.admin? && can_create_user? %>
   <br />
   <%= link_to 'New user', new_user_path, :class => 'arrow_link' %>
 <% end %>
