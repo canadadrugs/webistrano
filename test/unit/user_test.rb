@@ -348,6 +348,41 @@ class UserTest < ActiveSupport::TestCase
     assert !u_disabled.errors.on(:login)
   end
 
+    def test_should_allow_same_email_if_disabled_and_unique_guid
+    u_disabled = create_user
+    u_disabled.disable
+    assert_difference 'User.count' do
+      user = create_user(:login => 'not_quire', :guid => 'bcdefg')
+      assert !user.new_record?, "#{user.errors.full_messages.to_sentence}"
+    end
+  end
+
+  def test_should_not_allow_same_email_if_disabled_and_matching_guid
+    u_disabled = create_user
+    u_disabled.disable
+    assert_no_difference 'User.count' do
+      user = create_user
+      assert user.errors.on(:email)
+    end
+  end
+
+  def test_should_not_allow_disabled_user_to_enable_if_matching_email
+    u_disabled = create_user
+    u_disabled.disable
+    u_enabled = create_user(:login => 'not_quire', :guid => 'bcdefg')
+    assert !u_disabled.enable
+    assert u_disabled.errors.on(:email)
+  end
+
+  def test_should_allow_disabled_user_to_enable_if_matching_email_and_disabled
+    u_disabled = create_user
+    u_disabled.disable
+    u_other_disabled = create_user(:login => 'not_quire', :guid => 'bcdefg')
+    u_other_disabled.disable
+    assert u_disabled.enable
+    assert !u_disabled.errors.on(:email)
+  end
+
   protected
     def create_admin_user(options = {})
       user = create_user

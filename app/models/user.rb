@@ -27,11 +27,10 @@ class User < ActiveRecord::Base
   validates_confirmation_of :password,                   :if => :password_required?
   validates_length_of       :login,    :within => 3..40
   validates_length_of       :email,    :within => 3..100
-  validates_uniqueness_of   :email, :case_sensitive => false
-  validates_uniqueness_of   :login, :case_sensitive => false, :scope => :guid
-  validate                  :only_one_enabled_unique_login
+  validates_uniqueness_of   :email, :login, :case_sensitive => false, :scope => :guid
+  validate                  :only_one_enabled_unique_login, :only_one_enabled_unique_email
   before_save :encrypt_password
-  
+
   named_scope :enabled, :conditions => {:disabled => nil}
   named_scope :disabled, :conditions => "disabled IS NOT NULL"
 
@@ -39,6 +38,13 @@ class User < ActiveRecord::Base
     # Verify that this user is the only enabled user with the login
     if !disabled? && User.find_all_by_login_and_disabled(login, nil).reject{|user| user.id == self.id}.size > 0
       errors.add(:login, 'name can only be active for one user at a time.')
+    end
+  end
+
+  def only_one_enabled_unique_email
+    # Verify that this user is the only enabled user with the email
+    if !disabled? && User.find_all_by_email_and_disabled(email, nil).reject{|user| user.id == self.id}.size > 0
+      errors.add(:email, 'address can only be active for one user at a time.')
     end
   end
 
