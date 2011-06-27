@@ -30,7 +30,6 @@ class AuthenticationLDAP
 private
   def self.initialize_ldap_connection(options={})
     config = WebistranoConfig[:ldap]
-    options.merge!(WebistranoConfig[:ldap])
 
     Net::LDAP.new(
       :host => config[:host],
