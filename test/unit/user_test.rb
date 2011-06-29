@@ -49,9 +49,9 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
-  def test_should_not_require_guid_if_not_using_ldap
+  def test_should_not_require_ldap_id_if_not_using_ldap
     assert_difference 'User.count' do
-      user = create_user(:guid => nil)
+      user = create_user(:ldap_id => nil)
       assert !user.new_record?, "#{user.errors.full_messages.to_sentence}"
     end
   end
@@ -282,8 +282,8 @@ class UserTest < ActiveSupport::TestCase
     login = 'ldap_tester'
     email = 'ldap@example.com'
     password = 'retset_padl'
-    guid = 'abcdefg'
-    AuthenticationLDAP.expects(:authenticate).with(login, password).returns({:login => login, :email => email, :guid => guid})
+    ldap_id = 'abcdefg'
+    AuthenticationLDAP.expects(:authenticate).with(login, password).returns({:login => login, :email => email, :ldap_id => ldap_id})
     with_ldap_authentication do
       assert_difference 'User.count' do
         User.authenticate(login, password)
@@ -295,8 +295,8 @@ class UserTest < ActiveSupport::TestCase
     login = 'quentin'
     email = 'quentin@exam'
     password = 'nitneuq'
-    guid = '123456'
-    AuthenticationLDAP.expects(:authenticate).with(login, password).returns({:login => login, :email => email, :guid => guid})
+    ldap_id = '123456'
+    AuthenticationLDAP.expects(:authenticate).with(login, password).returns({:login => login, :email => email, :ldap_id => ldap_id})
     with_ldap_authentication do
       assert_no_difference 'User.count' do
         User.authenticate(login, password)
@@ -304,25 +304,25 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
-  def test_should_require_guid_if_using_ldap
+  def test_should_require_ldap_id_if_using_ldap
     with_ldap_authentication do
       assert_no_difference 'User.count' do
-        u = create_user(:guid => nil)
-        assert u.errors.on(:guid)
+        u = create_user(:ldap_id => nil)
+        assert u.errors.on(:ldap_id)
       end
     end
   end
 
-  def test_should_allow_same_login_if_disabled_and_unique_guid
+  def test_should_allow_same_login_if_disabled_and_unique_ldap_id
     u_disabled = create_user
     u_disabled.disable
     assert_difference 'User.count' do
-      user = create_user(:email => 'not_quire@example.com', :guid => 'bcdefg')
+      user = create_user(:email => 'not_quire@example.com', :ldap_id => 'bcdefg')
       assert !user.new_record?, "#{user.errors.full_messages.to_sentence}"
     end
   end
 
-  def test_should_not_allow_same_login_if_disabled_and_matching_guid
+  def test_should_not_allow_same_login_if_disabled_and_matching_ldap_id
     u_disabled = create_user
     u_disabled.disable
     assert_no_difference 'User.count' do
@@ -334,7 +334,7 @@ class UserTest < ActiveSupport::TestCase
   def test_should_not_allow_disabled_user_to_enable_if_matching_login
     u_disabled = create_user
     u_disabled.disable
-    u_enabled = create_user(:email => 'not_quire@example.com', :guid => 'bcdefg')
+    u_enabled = create_user(:email => 'not_quire@example.com', :ldap_id => 'bcdefg')
     assert !u_disabled.enable
     assert u_disabled.errors.on(:login)
   end
@@ -342,22 +342,22 @@ class UserTest < ActiveSupport::TestCase
   def test_should_allow_disabled_user_to_enable_if_matching_login_and_disabled
     u_disabled = create_user
     u_disabled.disable
-    u_other_disabled = create_user(:email => 'not_quire@example.com', :guid => 'bcdefg')
+    u_other_disabled = create_user(:email => 'not_quire@example.com', :ldap_id => 'bcdefg')
     u_other_disabled.disable
     assert u_disabled.enable
     assert !u_disabled.errors.on(:login)
   end
 
-    def test_should_allow_same_email_if_disabled_and_unique_guid
+    def test_should_allow_same_email_if_disabled_and_unique_ldap_id
     u_disabled = create_user
     u_disabled.disable
     assert_difference 'User.count' do
-      user = create_user(:login => 'not_quire', :guid => 'bcdefg')
+      user = create_user(:login => 'not_quire', :ldap_id => 'bcdefg')
       assert !user.new_record?, "#{user.errors.full_messages.to_sentence}"
     end
   end
 
-  def test_should_not_allow_same_email_if_disabled_and_matching_guid
+  def test_should_not_allow_same_email_if_disabled_and_matching_ldap_id
     u_disabled = create_user
     u_disabled.disable
     assert_no_difference 'User.count' do
@@ -369,7 +369,7 @@ class UserTest < ActiveSupport::TestCase
   def test_should_not_allow_disabled_user_to_enable_if_matching_email
     u_disabled = create_user
     u_disabled.disable
-    u_enabled = create_user(:login => 'not_quire', :guid => 'bcdefg')
+    u_enabled = create_user(:login => 'not_quire', :ldap_id => 'bcdefg')
     assert !u_disabled.enable
     assert u_disabled.errors.on(:email)
   end
@@ -377,7 +377,7 @@ class UserTest < ActiveSupport::TestCase
   def test_should_allow_disabled_user_to_enable_if_matching_email_and_disabled
     u_disabled = create_user
     u_disabled.disable
-    u_other_disabled = create_user(:login => 'not_quire', :guid => 'bcdefg')
+    u_other_disabled = create_user(:login => 'not_quire', :ldap_id => 'bcdefg')
     u_other_disabled.disable
     assert u_disabled.enable
     assert !u_disabled.errors.on(:email)
@@ -391,7 +391,7 @@ class UserTest < ActiveSupport::TestCase
     end
 
     def create_user(options = {})
-      User.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire', :guid => 'abcdef' }.merge(options))
+      User.create({ :login => 'quire', :email => 'quire@example.com', :password => 'quire', :password_confirmation => 'quire', :ldap_id => 'abcdef' }.merge(options))
     end
 
     def with_ldap_authentication

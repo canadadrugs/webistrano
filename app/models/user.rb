@@ -17,17 +17,17 @@ class User < ActiveRecord::Base
   # Virtual attribute for the unencrypted password
   attr_accessor :password
   
-  attr_accessible :login, :email, :password, :password_confirmation, :time_zone, :tz, :stage_ids, :guid
+  attr_accessible :login, :email, :password, :password_confirmation, :time_zone, :tz, :stage_ids, :ldap_id
 
   validates_presence_of     :login, :email
-  validates_presence_of     :guid, :if => :use_ldap_authentication?
+  validates_presence_of     :ldap_id, :if => :ldap_id_required?
   validates_presence_of     :password,                   :if => :password_required?
   validates_presence_of     :password_confirmation,      :if => :password_required?
   validates_length_of       :password, :within => 4..40, :if => :password_required?
   validates_confirmation_of :password,                   :if => :password_required?
   validates_length_of       :login,    :within => 3..40
   validates_length_of       :email,    :within => 3..100
-  validates_uniqueness_of   :email, :login, :case_sensitive => false, :scope => :guid
+  validates_uniqueness_of   :email, :login, :case_sensitive => false, :scope => :ldap_id
   validate                  :only_one_enabled_unique_login, :only_one_enabled_unique_email
   before_save :encrypt_password
 
@@ -69,7 +69,7 @@ class User < ActiveRecord::Base
 
     return nil unless attributes
 
-    find_by_login_and_disabled_and_guid(login, nil, attributes[:guid]) || create!(attributes.merge(:password_confirmation => password, :password => password))
+    find_by_login_and_disabled_and_ldap_id(login, nil, attributes[:ldap_id]) || create!(attributes.merge(:password_confirmation => password, :password => password))
   end
   
   def self.authenticate_locally(login, password)
@@ -214,5 +214,9 @@ class User < ActiveRecord::Base
 
     def use_ldap_authentication?
       WebistranoConfig[:authentication_method] == :ldap
+    end
+
+    def ldap_id_required?
+      use_ldap_authentication? && WebistranoConfig[:ldap][:ldap_id].present?
     end
 end

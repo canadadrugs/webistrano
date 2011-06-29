@@ -210,7 +210,7 @@ module Factories
       :email => "#{random_string}@#{random_string}.com",
       :admin => 0,
       :password => random_string,
-      :guid => random_string
+      :ldap_id => random_string
     }.update(options)
   
     u = User.new
@@ -219,7 +219,7 @@ module Factories
     u.admin = options[:admin]
     u.password = options[:password]
     u.password_confirmation = options[:password]
-    u.guid = options[:guid]
+    u.ldap_id = options[:ldap_id]
 
     u.save!
   

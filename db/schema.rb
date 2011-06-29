@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110616200954) do
+ActiveRecord::Schema.define(:version => 20110629173740) do
 
   create_table "configuration_parameters", :force => true do |t|
     t.string   "name"
@@ -142,7 +142,7 @@ ActiveRecord::Schema.define(:version => 20110616200954) do
     t.integer  "admin",                                   :default => 0
     t.string   "time_zone",                               :default => "UTC"
     t.datetime "disabled"
-    t.string   "guid"
+    t.string   "ldap_id"
   end
 
   add_index "users", ["disabled"], :name => "index_users_on_disabled"
