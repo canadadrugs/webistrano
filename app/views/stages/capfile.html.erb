@@ -19,6 +19,7 @@ load 'deploy'
 # Webistrano defaults
   set :webistrano_project, <%= capfile_cast(h(@stage.project.webistrano_project_name)) %>
   set :webistrano_stage, <%= capfile_cast(h(@stage.webistrano_stage_name)) %>
+  set :webistrano_deployer, <%= capfile_cast(h(current_user.login)) %>
 
 <% @stage.non_prompt_configurations.each do |effective_conf| %>
   set :<%= effective_conf.name.to_sym %>, <%= capfile_cast(effective_conf.value) %>
